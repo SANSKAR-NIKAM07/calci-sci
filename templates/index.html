@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scientific Calculator</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="calculator">
+        <div class="display">
+            <input id="expression" type="text" placeholder="Enter expression" autocomplete="off">
+            <div id="result">Result: 0</div>
+        </div>
+        <div class="buttons">
+            <button class="btn" data-value="7">7</button>
+            <button class="btn" data-value="8">8</button>
+            <button class="btn" data-value="9">9</button>
+            <button class="btn operator" data-value="/">÷</button>
+
+            <button class="btn" data-value="4">4</button>
+            <button class="btn" data-value="5">5</button>
+            <button class="btn" data-value="6">6</button>
+            <button class="btn operator" data-value="*">×</button>
+
+            <button class="btn" data-value="1">1</button>
+            <button class="btn" data-value="2">2</button>
+            <button class="btn" data-value="3">3</button>
+            <button class="btn operator" data-value="-">−</button>
+
+            <button class="btn" data-value="0">0</button>
+            <button class="btn" data-value=".">.</button>
+            <button class="btn" data-value="(">(</button>
+            <button class="btn" data-value=")">)</button>
+            <button class="btn operator" data-value="+">+</button>
+
+            <button class="btn function" data-value="pi">pi</button>
+            <button class="btn function" data-value="e">e</button>
+            <button class="btn function" data-value="sin(">sin</button>
+            <button class="btn function" data-value="cos(">cos</button>
+            <button class="btn function" data-value="tan(">tan</button>
+            <button class="btn function" data-value="log(">ln</button>
+            <button class="btn function" data-value="log10(">log10</button>
+            <button class="btn function" data-value="sqrt(">√</button>
+            <button class="btn function" data-value="^">^</button>
+            <button class="btn clear" id="clear">C</button>
+            <button class="btn equals" id="equals">=</button>
+        </div>
+    </div>
+
+    <script>
+        const expressionInput = document.getElementById('expression');
+        const resultDisplay = document.getElementById('result');
+        const buttons = document.querySelectorAll('.btn');
+
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                const value = button.dataset.value;
+                if (!value) return;
+                if (button.id === 'clear') {
+                    expressionInput.value = '';
+                    resultDisplay.textContent = 'Result: 0';
+                    return;
+                }
+                if (button.id === 'equals') {
+                    evaluateExpression();
+                    return;
+                }
+                if (value === '^') {
+                    expressionInput.value += '**';
+                    return;
+                }
+                expressionInput.value += value;
+            });
+        });
+
+        expressionInput.addEventListener('keydown', event => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                evaluateExpression();
+            }
+        });
+
+        function evaluateExpression() {
+            const expression = expressionInput.value.trim();
+            if (!expression) return;
+            fetch('/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        expression
+                    }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        resultDisplay.textContent = 'Error: ' + data.error;
+                    } else {
+                        resultDisplay.textContent = 'Result: ' + data.result;
+                    }
+                })
+                .catch(() => {
+                    resultDisplay.textContent = 'Error: Unable to calculate';
+                });
+        }
+    </script>
+</body>
+
+</html>
